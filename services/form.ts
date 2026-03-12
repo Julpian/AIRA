@@ -121,7 +121,7 @@ export type FormValue = {
 export type FormItem = {
   id: string;
   label: string;
-  input_type: "text" | "number" | "boolean" | "select";
+  input_type: "text" | "number" | "boolean" | "select" | "checkbox";
   required: boolean;
   target_min?: number; 
   target_max?: number;
