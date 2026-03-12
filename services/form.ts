@@ -118,7 +118,7 @@ export type FormValue = {
   value_bool?: boolean;
 };
 
-export type InspectionFormItem = {
+export type FormItem = {
   id: string;
   label: string;
   input_type: "text" | "number" | "boolean" | "select";
@@ -128,5 +128,5 @@ export type InspectionFormItem = {
 export type InspectionFormSection = {
   code: string;
   title: string;
-  items: InspectionFormItem[];
+  items: FormItem[];
 };
