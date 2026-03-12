@@ -125,6 +125,7 @@ export type FormItem = {
   required: boolean;
   target_min?: number; 
   target_max?: number;
+  unit?: string;
 };
 
 export type InspectionFormSection = {
