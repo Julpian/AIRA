@@ -12,6 +12,10 @@
   --font-mono: var(--font-geist-mono);
 }
 
+.fc-daygrid-day-frame {
+  background: #0f172a;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -19,8 +23,163 @@
   }
 }
 
+.fc-theme-standard td {
+  @apply border-slate-800/70;
+}
+
+.fc-event-custom:hover {
+  @apply brightness-110 shadow-indigo-500/30;
+}
+
+.fc td:hover {
+  @apply bg-indigo-500/5 transition;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+
+.input {
+  @apply w-full rounded-xl bg-zinc-800 border border-zinc-700
+  px-4 py-2 text-sm text-white placeholder:text-gray-400
+  focus:outline-none focus:ring-2 focus:ring-sky-500;
+}
+
+.btn-primary {
+  @apply flex items-center justify-center gap-2 rounded-xl
+  bg-sky-600 hover:bg-sky-500 transition
+  px-4 py-3 text-white font-medium;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center gap-2 rounded-lg
+  border border-zinc-700 bg-zinc-800 px-3 py-2
+  text-sm text-gray-300 hover:bg-zinc-700 transition;
+}
+
+.btn-submit {
+  @apply w-full flex items-center justify-center gap-2
+  rounded-xl bg-emerald-600 hover:bg-emerald-500
+  px-4 py-3 font-semibold text-white transition disabled:opacity-60;
+}
+
+/* Event base */
+.fc-event-custom {
+  box-shadow: 0 0 0 1px rgba(255,255,255,.05), 0 4px 12px rgba(0,0,0,.6);
+}
+
+@layer components {
+
+.fc {
+  @apply text-gray-200;
+}
+
+/* Header */
+.fc-col-header-cell {
+  background: #020617;
+  color: #94a3b8;
+}
+
+.fc .fc-col-header-cell-cushion {
+  @apply text-gray-300 text-xs font-semibold uppercase;
+}
+
+/* Grid */
+.fc-theme-standard td,
+.fc-theme-standard th {
+  @apply border-slate-800;
+}
+
+/* Date */
+.fc .fc-daygrid-day-number {
+  @apply text-gray-300 text-xs font-semibold;
+}
+
+/* Weekend */
+.fc .fc-day-sat,
+.fc .fc-day-sun {
+  @apply bg-red-500/3
+}
+
+.fc .fc-day-sat .fc-daygrid-day-number,
+.fc .fc-day-sun .fc-daygrid-day-number {
+  @apply text-red-400;
+}
+
+/* Today */
+.fc .fc-day-today {
+  @apply bg-indigo-500/5 ring-1 ring-indigo-400;
+}
+
+.fc .fc-day-today .fc-daygrid-day-number {
+  @apply text-indigo-400 font-bold;
+}
+
+/* Toolbar */
+.fc .fc-toolbar-title {
+  @apply text-gray-200 font-semibold;
+}
+
+/* Buttons */
+.fc .fc-button {
+  @apply bg-slate-900 border border-slate-800 text-gray-300;
+}
+
+.fc .fc-button:hover {
+  @apply bg-slate-800;
+}
+
+/* Event */
+.fc-event-custom {
+  @apply rounded-md px-2 text-xs font-semibold text-white shadow;
+}
+
+/* Monthly */
+.fc-monthly {
+  @apply bg-indigo-500;
+}
+
+/* Semester */
+.fc-semester {
+  @apply bg-indigo-400;
+}
+
+
+/* Yearly */
+.fc-yearly {
+  @apply bg-indigo-300;
+}
+/* More */
+.fc .fc-daygrid-more-link {
+  @apply text-indigo-400 text-xs font-semibold;
+}
+
+/* Popover */
+.fc .fc-popover {
+  @apply bg-slate-950 border border-slate-800;
+}
+
+.fc .fc-popover-title {
+  @apply text-gray-200 font-semibold;
+}
+
+}
+
+.fc-ready {
+  @apply bg-blue-500/20 text-blue-300 border border-blue-400/30;
+}
+
+.fc-progress {
+  @apply bg-amber-500/20 text-amber-300 border border-amber-400/30;
+}
+
+.fc-done {
+  @apply bg-emerald-500/20 text-emerald-300 border border-emerald-400/30;
+}
+
+.fc-overdue {
+  @apply bg-red-500/30 text-white border border-red-500;
 }
