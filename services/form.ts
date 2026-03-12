@@ -123,6 +123,8 @@ export type FormItem = {
   label: string;
   input_type: "text" | "number" | "boolean" | "select";
   required: boolean;
+  target_min?: number; 
+  target_max?: number;
 };
 
 export type InspectionFormSection = {
