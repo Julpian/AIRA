@@ -36,7 +36,7 @@ export default function LoginPage() {
       saveAuth(res.token, role);
       router.replace(getDashboardRoute(role));
     } catch {
-      setError("Otentikasi gagal. Akses ditolak.");
+      setError("Server sedang mati, harus di aktifkan sama Lutfi Julpian Terimakasih.");
     } finally {
       setLoading(false);
     }
