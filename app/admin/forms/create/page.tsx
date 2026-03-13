@@ -128,13 +128,13 @@ export default function CreateFormPage() {
             title: s.title,
             order: sectionIndex + 1,
             items: s.items
-              .filter((i) => i.label.trim() !== "") // PENTING: Buang item yang labelnya kosong
-              .map((i, itemIndex) => ({
-                label: i.label,
-                type: i.input_type, // Memastikan mapping ke 'type' sesuai kebutuhan backend
-                required: i.required,
-                order: itemIndex + 1,
-              })),
+            .filter((i) => i.label.trim() !== "")
+            .map((i, itemIndex) => ({
+              label: i.label,
+              input_type: i.input_type,
+              required: i.required,
+              order: itemIndex + 1,
+            })),
           })),
       };
 
