@@ -35,7 +35,11 @@ export default function VerifyInspectionPage() {
 
   useEffect(() => {
     if (!id) return;
-    fetch(`${process.env.NEXT_PUBLIC_API}/public/verify/inspection/${id}`)
+    fetch(`${process.env.NEXT_PUBLIC_API}/public/verify/inspection/${id}`, {
+      headers: {
+        "ngrok-skip-browser-warning": "true",
+      },
+    })
       .then((res) => {
         if (!res.ok) throw new Error("Not Found");
         return res.json();
