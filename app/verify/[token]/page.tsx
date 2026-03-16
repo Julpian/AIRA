@@ -34,11 +34,15 @@ export default function VerifyPage() {
   const [fileName, setFileName] = useState("");
 
   useEffect(() => {
-    if (!token) return;
-    fetch(`${process.env.NEXT_PUBLIC_API}/public/verify/${token}`)
+      if (!token) return;
+      fetch(`${process.env.NEXT_PUBLIC_API}/public/verify/${token}`, {
+        headers: {
+          "ngrok-skip-browser-warning": "69420", // Melewati halaman peringatan ngrok
+        },
+      })
       .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
+          if (!r.ok) throw new Error();
+          return r.json();
       })
       .then((res: VerifyResponse) => setData(res))
       .catch(() => setData(null))
