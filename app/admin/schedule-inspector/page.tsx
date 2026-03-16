@@ -119,6 +119,8 @@ export default function AdminSchedulesPage() {
   const [signature, setSignature] = useState("");
   const [calendarMode, setCalendarMode] = useState<"month" | "semester">("month");
   const [showYearCalendar, setShowYearCalendar] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
   /* PAGINATION */
   const ITEMS_PER_PAGE = 10;
@@ -192,6 +194,45 @@ export default function AdminSchedulesPage() {
     alert("Schedule berhasil ditandatangani");
   }
 
+  async function handlePreview() {
+    const auth = getAuth();
+    if (!auth?.token) {
+      alert("Sesi berakhir, silakan login ulang.");
+      return;
+    }
+
+    setIsPreviewLoading(true);
+    const API_URL = process.env.NEXT_PUBLIC_API || "";
+
+    try {
+      const res = await fetch(`${API_URL}/admin/schedule/${year}/pdf`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+        },
+      });
+
+      if (!res.ok) {
+        alert("PDF belum tersedia atau belum ditandatangani");
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // Opsi 1: Buka di Tab Baru (Paling Ringan)
+      // window.open(url, '_blank');
+
+      // Opsi 2: Set ke State untuk tampil di Modal (Lebih Profesional)
+      setPreviewUrl(url);
+    } catch (error) {
+      console.error(error);
+      alert("Gagal memuat preview");
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  }
+
   async function downloadPDF() {
     const auth = getAuth();
     if (!auth?.token) {
@@ -251,31 +292,76 @@ export default function AdminSchedulesPage() {
       
       {/* HEADER */}
       <header className="sticky top-0 z-30 border-b border-white/5 bg-[#0f172a]/80 backdrop-blur-xl px-8 py-4">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="bg-teal-500/10 p-2.5 rounded-xl border border-teal-500/20">
-              <CalendarRange className="text-teal-400 w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-white tracking-tight italic">Schedule Inspector</h1>
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">AHU System Monitoring</p>
-            </div>
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="bg-teal-500/10 p-2.5 rounded-xl border border-teal-500/20">
+            <CalendarRange className="text-teal-400 w-6 h-6" />
           </div>
+          <div>
+            <h1 className="text-xl font-bold text-white tracking-tight italic">Schedule Inspector</h1>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">AHU System Monitoring</p>
+          </div>
+        </div>
 
-          <div className="flex items-center gap-3">
-            <button onClick={downloadPDF} className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition-all border border-slate-700 text-sm font-semibold">
-              <Download size={16} /> Export PDF
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handlePreview} 
+            disabled={isPreviewLoading}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition-all border border-slate-700 text-sm font-semibold"
+          >
+            {isPreviewLoading ? "Loading..." : <><Maximize2 size={16} /> Preview</>}
+          </button>
+
+          <button onClick={downloadPDF} className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition-all border border-slate-700 text-sm font-semibold">
+            <Download size={16} /> Export PDF
+          </button>
+
+          <button 
+            disabled={!hasAssignedSchedule}
+            onClick={() => setShowSign(true)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-xl transition-all text-sm font-bold shadow-lg shadow-indigo-500/20"
+          >
+            <PenTool size={16} /> Sign Schedule
+          </button>
+        </div>
+      </div>
+    </header>
+
+    {/* MODAL PREVIEW PDF */}
+    {previewUrl && (
+      <div className="fixed inset-0 z-[110] flex flex-col bg-slate-950/95 backdrop-blur-xl animate-in fade-in duration-300">
+        <div className="flex items-center justify-between px-8 py-4 border-b border-white/10 bg-[#0f172a]">
+          <div>
+            <h2 className="text-xl font-bold text-white italic">Preview Schedule {year}</h2>
+            <p className="text-xs text-slate-400">Dokumen ini adalah salinan resmi AIRA System</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={downloadPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-sm font-bold transition-all"
+            >
+              <Download size={16} /> Download
             </button>
             <button 
-              disabled={!hasAssignedSchedule}
-              onClick={() => setShowSign(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-xl transition-all text-sm font-bold shadow-lg shadow-indigo-500/20"
+              onClick={() => {
+                window.URL.revokeObjectURL(previewUrl); // Bersihkan memori
+                setPreviewUrl(null);
+              }} 
+              className="p-2 hover:bg-red-500/20 text-red-400 rounded-full transition-all"
             >
-              <PenTool size={16} /> Sign Schedule
+              <X size={28} />
             </button>
           </div>
         </div>
-      </header>
+        <div className="flex-1 p-4 md:p-8 flex justify-center bg-slate-900/50">
+          <iframe 
+            src={`${previewUrl}#toolbar=0`} 
+            className="w-full max-w-5xl h-full rounded-xl border border-white/10 shadow-2xl bg-white"
+            title="PDF Preview"
+          />
+        </div>
+      </div>
+    )}
 
       <main className="max-w-7xl mx-auto p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
         
