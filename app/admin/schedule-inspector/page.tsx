@@ -328,43 +328,10 @@ const [isPreviewLoading, setIsPreviewLoading] = useState(false);
     </header>
 
     {/* MODAL PREVIEW PDF */}
-    {previewUrl && (
-      <div className="fixed inset-0 z-[110] flex flex-col bg-slate-950/95 backdrop-blur-xl animate-in fade-in duration-300">
-        <div className="flex items-center justify-between px-8 py-4 border-b border-white/10 bg-[#0f172a]">
-          <div>
-            <h2 className="text-xl font-bold text-white italic">Preview Schedule {year}</h2>
-            <p className="text-xs text-slate-400">Dokumen ini adalah salinan resmi AIRA System</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={downloadPDF}
-              className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-sm font-bold transition-all"
-            >
-              <Download size={16} /> Download
-            </button>
-            <button 
-              onClick={() => {
-                window.URL.revokeObjectURL(previewUrl); // Bersihkan memori
-                setPreviewUrl(null);
-              }} 
-              className="p-2 hover:bg-red-500/20 text-red-400 rounded-full transition-all"
-            >
-              <X size={28} />
-            </button>
-          </div>
-        </div>
-        <div className="flex-1 p-4 md:p-8 flex justify-center bg-slate-900/50">
-          <iframe 
-            src={`${previewUrl}#toolbar=0`} 
-            className="w-full max-w-5xl h-full rounded-xl border border-white/10 shadow-2xl bg-white"
-            title="PDF Preview"
-          />
-        </div>
-      </div>
-    )}
+    
 
       <main className="max-w-7xl mx-auto p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+
         {/* LEFT COLUMN */}
         <div className="lg:col-span-8 space-y-6">
           <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-900/40 p-2 rounded-2xl border border-white/5">
@@ -472,6 +439,42 @@ const [isPreviewLoading, setIsPreviewLoading] = useState(false);
           </div>
         </aside>
       </main>
+
+      {/* MODAL PREVIEW PDF */} 
+      {previewUrl && (
+      <div className="fixed inset-0 z-[110] flex flex-col bg-slate-950/95 backdrop-blur-xl animate-in fade-in duration-300">
+        <div className="flex items-center justify-between px-8 py-4 border-b border-white/10 bg-[#0f172a]">
+          <div>
+            <h2 className="text-xl font-bold text-white italic">Preview Schedule {year}</h2>
+            <p className="text-xs text-slate-400">Dokumen ini adalah salinan resmi AIRA System</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={downloadPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-sm font-bold transition-all"
+            >
+              <Download size={16} /> Download
+            </button>
+            <button 
+              onClick={() => {
+                window.URL.revokeObjectURL(previewUrl); // Bersihkan memori
+                setPreviewUrl(null);
+              }} 
+              className="p-2 hover:bg-red-500/20 text-red-400 rounded-full transition-all"
+            >
+              <X size={28} />
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 p-4 md:p-8 flex justify-center bg-slate-900/50">
+          <iframe 
+            src={`${previewUrl}#toolbar=0`} 
+            className="w-full max-w-5xl h-full rounded-xl border border-white/10 shadow-2xl bg-white"
+            title="PDF Preview"
+          />
+        </div>
+      </div>
+    )}
 
       {/* MODALS */}
       {showYearCalendar && (
