@@ -66,7 +66,7 @@ export default function Sidebar() {
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutGrid },
     { label: "My Profile", href: "/profile", icon: User },
     { 
-      label: "Approval", 
+      label: "Review Laporan", 
       href: "/admin/spv/inspection", // Arahkan ke list, bukan folder
       icon: ClipboardCheck // Gunakan ikon yang relevan
     },
@@ -90,7 +90,7 @@ export default function Sidebar() {
     { label: "User Management", href: "/admin/users", icon: Users },
     { label: "Audit Trail", href: "/admin/audit-trails", icon: Activity },
     {
-      label: "Forms",
+      label: "Forms Management",
       icon: FileText,
       children: [
         { label: "Form Template", href: "/admin/forms", icon: FileText },
