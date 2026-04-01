@@ -1,22 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import SidebarInspector from "@/components/SidebarInspector";
 import RequireRole from "@/components/RequireRole";
 import MobileBottomNav from "@/components/MobileBottomNav";
-
-// 🔥 Custom hook biar clean & reusable
-function useIsClient() {
-  const [isClient, setIsClient] = useState(false);
-
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  return isClient;
-}
 
 export default function InspectorLayout({
   children,
@@ -24,10 +11,6 @@ export default function InspectorLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname() || "";
-  const isClient = useIsClient();
-
-  // ⛔ Prevent hydration mismatch
-  if (!isClient) return null;
 
   // ============================
   // LOGIC
@@ -39,7 +22,7 @@ export default function InspectorLayout({
 
   return (
     <RequireRole roles={["inspector"]}>
-      <div className="flex min-h-screen bg-[#F2F2F7] antialiased selection:bg-blue-100">
+      <div className="flex min-h-screen bg-[#F9FAFB] antialiased selection:bg-blue-100">
 
         {/* SIDEBAR */}
         {!isFormPage && (
@@ -50,13 +33,13 @@ export default function InspectorLayout({
 
         <main
           className={`
-            flex-1 min-h-screen w-full transition-all duration-500 ease-in-out
+            flex-1 min-h-screen w-full transition-all duration-300
             ${!isFormPage ? "lg:ml-64" : "lg:ml-0"}
           `}
         >
           <div
             className={`
-              max-w-screen-xl mx-auto
+              max-w-7xl mx-auto
               ${isFormPage ? "p-0" : "p-4 md:p-8 pb-32 lg:pb-12"}
             `}
           >

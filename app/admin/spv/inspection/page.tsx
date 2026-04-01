@@ -48,7 +48,12 @@ export default function ApprovalListPage() {
 
   const openPdf = (id: string) => {
     const baseUrl = process.env.NEXT_PUBLIC_API;
-    window.open(`${baseUrl}/api/files/inspection/${id}.pdf`, "_blank");
+    const finalUrl = `${baseUrl}/files/inspection/${id}.pdf`;
+    
+    // 🔥 CEK DI CONSOLE (F12) SAAT KLIK TOMBOL
+    console.log("BASE URL:", baseUrl);
+    console.log("FINAL URL:", finalUrl);
+    window.open(`${baseUrl}/files/inspection/${id}.pdf`, "_blank");
   };
 
   return (

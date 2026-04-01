@@ -110,29 +110,50 @@ export default function EnhancedAdminDashboard() {
     <div className="min-h-screen bg-[#0F172A] p-4 md:p-8 text-slate-200">
       
       {/* HEADER */}
-      <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">
-            Admin <span className="text-teal-400">DASHBOARD</span>
-          </h1>
-          <p className="text-slate-400 mt-1">Monitoring Pemeliharaan AHU PT Kimia Farma</p>
+      <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div>
+        <h1 className="text-3xl font-extrabold text-white tracking-tight">
+          Admin <span className="text-teal-400">DASHBOARD</span>
+        </h1>
+        <p className="text-slate-400 mt-1">Monitoring Pemeliharaan AHU PT Kimia Farma</p>
+      </div>
+      
+      <div className="flex items-center gap-4 self-end md:self-center">
+        {/* FILTER AHU */}
+        <div className="relative group">
+          <ListFilter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-hover:text-teal-400 transition-colors" />
+          <select
+            value={selectedAHU}
+            onChange={(e) => setSelectedAHU(e.target.value)}
+            className="pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all cursor-pointer hover:bg-slate-700/70 text-sm font-semibold text-white min-w-[160px]"
+          >
+            {ahuList.map((ahu) => (
+              <option key={ahu} value={ahu}>
+                {ahu === "ALL" ? "Semua Unit AHU" : `Unit: ${ahu}`}
+              </option>
+            ))}
+          </select>
         </div>
-        
-        <div className="flex items-center gap-3">
-          <div className="relative group">
-            <ListFilter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <select
-              value={selectedAHU}
-              onChange={(e) => setSelectedAHU(e.target.value)}
-              className="pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition-all cursor-pointer hover:bg-slate-700 text-sm font-semibold"
-            >
-              {ahuList.map((ahu) => (
-                <option key={ahu} value={ahu}>{ahu === "ALL" ? "Semua Unit AHU" : `Unit: ${ahu}`}</option>
-              ))}
-            </select>
-          </div>
+
+        {/* 🔥 LOGO KIMIA FARMA LOKAL - LEBIH BESAR & LEBAR */}
+        <div 
+          className="h-16 w-28 md:h-20 md:w-36 bg-white rounded-3xl px-4 py-1.5 shadow-2xl shadow-teal-500/10 border border-white/10 flex items-center justify-center overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer ml-2"
+          onClick={() => {
+            if(confirm("Apakah Anda yakin ingin Sign Out?")) {
+              // Tambahkan logic logout kamu di sini
+              window.location.href = "/login";
+            }
+          }}
+          title="User Profile / Sign Out"
+        >
+          <img 
+            src="/logo-kf.png" // 👈 SESUAIKAN: ganti dengan nama file aslimu di folder public
+            alt="Logo Kimia Farma" 
+            className="w-full h-full object-contain"
+          />
         </div>
       </div>
+    </div>
 
       {/* STATS GRID */}
       <div className="mb-10 grid gap-6 grid-cols-1 md:grid-cols-3">
