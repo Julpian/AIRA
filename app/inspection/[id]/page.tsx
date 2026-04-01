@@ -57,10 +57,26 @@ export default function InspectionFormPage() {
     if (!id || !token) return;
     setLoading(true);
     apiFetch<FormTemplate>(`/inspection/${id}/form?token=${token}`)
-      .then(setForm)
-      .catch((err) => console.error("Fetch error:", err))
-      .finally(() => setLoading(false));
-  }, [id, token]);
+    .then((data: FormTemplate) => {
+      setForm(data);
+      
+      // 🔥 LOGIKA PRE-FILL: Masukkan jawaban lama ke dalam form
+      if (data.sections) {
+        const initialValues: Record<string, string> = {};
+        data.sections.forEach((section: FormSection) => {
+          section.items.forEach((item: FormItem & { value_text?: string }) => {
+            // Pastikan backend mengirim field 'value_text' atau 'current_value'
+            if (item.value_text) {
+              initialValues[item.id] = item.value_text;
+            }
+          });
+        });
+        setValues(initialValues);
+      }
+    })
+    .catch((err) => console.error("Fetch error:", err))
+    .finally(() => setLoading(false));
+}, [id, token]);
 
   const updateValue = (itemId: string, value: string) => {
     setValues((prev) => ({ ...prev, [itemId]: value }));

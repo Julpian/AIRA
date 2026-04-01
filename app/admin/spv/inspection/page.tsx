@@ -3,13 +3,22 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/services/api";
 import Link from "next/link";
-import { ClipboardCheck, Eye, Calendar, User, FileText, CheckCircle } from "lucide-react";
+import { 
+  Eye, 
+  Calendar, 
+  FileText, 
+  CheckCircle, 
+  Clock, 
+  AlertCircle,
+  ChevronRight 
+} from "lucide-react";
 
 interface Inspection {
-  ID: string;
-  InspectorID: string;
-  Status: string;
-  CreatedAt: string;
+  id: string;
+  inspector_id: string;
+  status: string;
+  created_at: string;
+  unit_code?: string;
 }
 
 export default function ApprovalListPage() {
@@ -21,9 +30,12 @@ export default function ApprovalListPage() {
     async function fetchInspections() {
       setLoading(true);
       try {
-        // Jika tab pending -> waiting_spv, jika tab approved -> approved
-        const status = activeTab === "pending" ? "waiting_spv" : "approved";
-        const data = await apiFetch(`/inspection?status=${status}`);
+        // Logika Status: 
+        // Jika tab Pending, ambil yang 'waiting_spv'
+        // Jika tab Approved, ambil yang 'approved'
+        const queryStatus = activeTab === "pending" ? "waiting_spv" : "approved";
+        const data = await apiFetch(`/inspection?status=${queryStatus}`);
+        
         setInspections(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to fetch approvals", error);
@@ -32,102 +44,134 @@ export default function ApprovalListPage() {
       }
     }
     fetchInspections();
-  }, [activeTab]); // Fetch ulang setiap kali tab berubah
+  }, [activeTab]); // Refetch data setiap kali tab berubah
 
   const openPdf = (id: string) => {
-    // Membuka PDF di tab baru
     const baseUrl = process.env.NEXT_PUBLIC_API;
-  window.open(`${baseUrl}/files/inspection/${id}.pdf`, "_blank");
-};
+    const finalUrl = `${baseUrl}/files/inspection/${id}.pdf`;
+    
+    // 🔥 CEK DI CONSOLE (F12) SAAT KLIK TOMBOL
+    console.log("BASE URL:", baseUrl);
+    console.log("FINAL URL:", finalUrl);
+    window.open(`${baseUrl}/files/inspection/${id}.pdf`, "_blank");
+  };
 
   return (
-    <div className="p-8">
-      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-8 min-h-screen bg-[#0f172a]">
+      {/* HEADER SECTION */}
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Inspection Management</h1>
-          <p className="text-slate-400">Kelola dan tinjau laporan inspeksi AHU PT Kimia Farma.</p>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">
+            Inspection Review
+          </h1>
+          <p className="text-slate-400 mt-1">
+            Kelola persetujuan laporan pemeliharaan AHU.
+          </p>
         </div>
 
-        {/* TABS SELECTOR */}
-        <div className="flex bg-slate-800/50 p-1 rounded-xl border border-white/5">
+        {/* TAB SWITCHER (Tombol Pending & Approved) */}
+        <div className="flex bg-slate-800/50 p-1.5 rounded-2xl border border-white/5 shadow-inner">
           <button
             onClick={() => setActiveTab("pending")}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-              activeTab === "pending" ? "bg-teal-500 text-slate-900" : "text-slate-400 hover:text-white"
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              activeTab === "pending" 
+                ? "bg-teal-500 text-slate-900 shadow-lg" 
+                : "text-slate-400 hover:text-slate-200"
             }`}
           >
+            <Clock size={16} />
             Pending
           </button>
           <button
             onClick={() => setActiveTab("approved")}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-              activeTab === "approved" ? "bg-teal-500 text-slate-900" : "text-slate-400 hover:text-white"
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              activeTab === "approved" 
+                ? "bg-teal-500 text-slate-900 shadow-lg" 
+                : "text-slate-400 hover:text-slate-200"
             }`}
           >
+            <CheckCircle size={16} />
             Approved
           </button>
         </div>
       </div>
 
+      {/* CONTENT AREA */}
       {loading ? (
-        <div className="flex items-center gap-3 text-teal-500 animate-pulse">
-           <div className="h-2 w-2 bg-teal-500 rounded-full animate-bounce"></div>
-           Loading data...
+        <div className="flex items-center gap-3 text-teal-500 font-medium">
+          <div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+          Memuat data inspeksi...
         </div>
       ) : inspections.length === 0 ? (
-        <div className="bg-slate-800/30 border border-dashed border-white/10 p-16 rounded-3xl text-center">
-          <ClipboardCheck size={48} className="mx-auto text-slate-700 mb-4" />
-          <p className="text-slate-500">Tidak ada inspeksi dalam kategori ini.</p>
+        <div className="bg-slate-800/20 border border-dashed border-slate-700 rounded-3xl p-20 text-center">
+          <FileText className="mx-auto text-slate-600 mb-4" size={48} />
+          <p className="text-slate-500 font-medium">Tidak ada laporan dalam daftar ini.</p>
         </div>
       ) : (
         <div className="grid gap-4">
-          {inspections.map((item) => (
-            <div 
-              key={item.ID} 
-              className="bg-slate-800/40 border border-white/5 p-5 rounded-2xl flex items-center justify-between hover:border-teal-500/30 transition-all group"
-            >
-              <div className="flex items-center gap-5">
-                <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${
-                  item.Status === "approved" ? "bg-teal-500/10 text-teal-500" : "bg-yellow-500/10 text-yellow-500"
-                }`}>
-                  {item.Status === "approved" ? <CheckCircle size={24} /> : <Calendar size={24} />}
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold">Inspection ID: {item.ID.substring(0, 8)}...</h3>
-                  <div className="flex gap-4 mt-1 text-xs text-slate-500 font-medium">
-                    <span className="flex items-center gap-1.5"><User size={14} className="text-slate-600"/> {item.InspectorID}</span>
-                    <span className="flex items-center gap-1.5">
-                      Status: 
-                      <b className={item.Status === "approved" ? "text-teal-400" : "text-yellow-500"}>
-                        {item.Status.toUpperCase()}
-                      </b>
-                    </span>
+          {inspections.map((item) => {
+            const currentStatus = item.status?.toLowerCase() || "";
+            const isApproved = currentStatus === "approved";
+            const isRevision = currentStatus === "revision_required";
+
+            return (
+              <div
+                key={item.id}
+                className="group bg-slate-800/40 hover:bg-slate-800/60 border border-white/5 p-5 rounded-[2rem] flex justify-between items-center transition-all"
+              >
+                <div className="flex gap-5 items-center">
+                  {/* Status Icon */}
+                  <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shadow-lg ${
+                    isApproved ? "bg-teal-500/10 text-teal-500" : 
+                    isRevision ? "bg-red-500/10 text-red-500" : 
+                    "bg-amber-500/10 text-amber-500"
+                  }`}>
+                    {isApproved ? <CheckCircle size={28} /> : (isRevision ? <AlertCircle size={28} /> : <Calendar size={28} />)}
+                  </div>
+
+                  <div>
+                    <h3 className="text-white font-bold text-lg group-hover:text-teal-400 transition-colors">
+                      {item.unit_code || `ID: ${item.id.substring(0, 8)}`}
+                    </h3>
+
+                    <div className="flex items-center gap-3 mt-1">
+                      <p className="text-xs text-slate-400 font-medium flex items-center gap-1">
+                       Inspector ID: <span className="text-slate-300">
+                        {item.inspector_id ? item.inspector_id.substring(0, 8) : "N/A"}
+                      </span>
+                      </p>
+                      <span className="h-1 w-1 bg-slate-600 rounded-full"></span>
+                      <p className={`text-[10px] font-black uppercase tracking-widest ${
+                        isApproved ? "text-teal-400" : 
+                        isRevision ? "text-red-400" : 
+                        "text-amber-400"
+                      }`}>
+                        {item.status?.replace('_', ' ').toUpperCase() || "UNKNOWN"}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="flex gap-2">
-                {item.Status === "approved" ? (
-                  // TOMBOL PREVIEW HASIL (Hanya muncul jika sudah approved)
-                  <button 
-                    onClick={() => openPdf(item.ID)}
-                    className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all border border-white/5"
-                  >
-                    <FileText size={18} />
-                    View Result PDF
-                  </button>
-                ) : (
-                  // TOMBOL REVIEW & SIGN (Untuk yang pending)
-                  <Link href={`/admin/spv/inspection/${item.ID}`}>
-                    <button className="flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-slate-900 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-teal-500/10 active:scale-95">
-                      <Eye size={18} />
-                      Review & Sign
+
+                <div className="flex items-center gap-3">
+                  {isApproved ? (
+                    <button 
+                      onClick={() => openPdf(item.id)}
+                      className="bg-slate-700 hover:bg-slate-600 text-white px-5 py-2.5 rounded-2xl flex items-center gap-2 text-sm font-bold transition-all shadow-lg active:scale-95"
+                    >
+                      <FileText size={18} /> View PDF
                     </button>
-                  </Link>
-                )}
+                  ) : (
+                    <Link href={`/admin/spv/inspection/${item.id}`}>
+                      <button className="bg-teal-500 hover:bg-teal-400 text-slate-900 px-6 py-2.5 rounded-2xl flex items-center gap-2 font-bold transition-all shadow-lg shadow-teal-500/20 active:scale-95">
+                        <Eye size={18} /> Review
+                        <ChevronRight size={16} className="opacity-50" />
+                      </button>
+                    </Link>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
