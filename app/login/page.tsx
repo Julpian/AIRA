@@ -6,13 +6,13 @@ import { apiFetch } from "@/services/api";
 import { saveAuth } from "@/services/auth";
 import { getDashboardRoute, Role } from "@/services/role";
 import { Inter } from "next/font/google";
-import { motion, AnimatePresence } from "framer-motion"; // 🔥 PERBAIKAN: Ditambahkan AnimatePresence di sini
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Eye, EyeOff, Loader2, ShieldCheck, ChevronRight } from "lucide-react";
 import Image from "next/image";
 
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
 });
 
 type LoginResponse = {
@@ -20,14 +20,27 @@ type LoginResponse = {
   role: string;
 };
 
+/* ✅ TYPE FIX (ganti any) */
+type LoginFormProps = {
+  username: string;
+  setUsername: (value: string) => void;
+  password: string;
+  setPassword: (value: string) => void;
+  showPassword: boolean;
+  setShowPassword: (value: boolean) => void;
+  error: string | null;
+  loading: boolean;
+  onSubmit: () => void;
+};
+
 export default function LoginPage() {
   const router = useRouter();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const login = async () => {
     setError(null);
@@ -35,147 +48,174 @@ export default function LoginPage() {
     try {
       const res = await apiFetch<LoginResponse>("/auth/login", {
         method: "POST",
-        body: JSON.stringify({
-          npp: username,
-          password,
-        }),
+        body: JSON.stringify({ npp: username, password }),
       });
 
       const role = res.role as Role;
       saveAuth(res.token, role);
       router.replace(getDashboardRoute(role));
     } catch {
-      setError("NPP atau kata sandi salah.");
+      setError("NPP atau kata sandi tidak terdaftar.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={`${inter.className} min-h-screen flex flex-col bg-[#ffffff] text-[#1d1d1f] antialiased selection:bg-blue-100`}>
+    <div className={`${inter.className} min-h-screen bg-[#fbfbfd] text-[#1d1d1f] flex items-center justify-center`}>
       
-      {/* 🍎 APPLE-STYLE SOFT BACKGROUND */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        {/* Menggunakan syntax bg-blue-500/3 sesuai saran linter untuk 0.03 opacity */}
-        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-blue-500/3 blur-[120px] rounded-full" />
+      {/* Background */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-[#0066cc]/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#5e5ce6]/5 blur-[120px] rounded-full" />
       </div>
 
-      {/* MAIN CONTAINER */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-20 pt-10">
+      <main className="w-full max-w-[1000px] md:px-6">
         
+        {/* DESKTOP */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-[380px]"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="hidden md:flex bg-white/70 backdrop-blur-3xl border border-white/40 shadow-xl rounded-3xl overflow-hidden min-h-[600px]"
         >
-          {/* 🍎 LOGO SECTION (REFINED) */}
-          <div className="flex flex-col items-center mb-10 md:mb-12">
-            <div className="transition-all duration-500 hover:scale-105">
-              <Image
-                src="/logo-kf.png" // 👈 PASTIKAN nama file & ekstensi (.png/.jpg) sama persis di folder public
-                alt="Kimia Farma"
-                width={160}  // Ukuran desktop (akan mengecil otomatis karena CSS)
-                height={80}  // Sesuaikan dengan aspek rasio logo asli
-                className="w-32 md:w-40 h-auto object-contain" // Kontrol ukuran via Tailwind
-                priority
-              />
-            </div>
-
-            <div className="text-center mt-6 space-y-1.5">
-              <h1 className="text-2xl font-semibold tracking-tight text-[#1d1d1f]">
-                AIRA System
-              </h1>
-              <p className="text-[#86868b] text-sm font-medium">
-                Masuk untuk manajemen unit AHU
+          {/* LEFT */}
+          <div className="w-[40%] bg-[#f5f5f7]/50 p-12 flex flex-col justify-between border-r">
+            <div>
+              <Image src="/logo-kf.png" alt="Logo" width={130} height={50} className="mb-12" />
+              <h2 className="text-3xl font-bold mb-4">
+                Manajemen AHU <br />dalam satu sistem.
+              </h2>
+              <p className="text-gray-500 text-sm">
+                AIRA System memberikan kendali penuh terhadap unit udara industri Anda.
               </p>
             </div>
+
+            <div className="flex items-center gap-3 text-sm bg-white p-3 rounded-xl">
+              <ShieldCheck size={16} className="text-blue-600" />
+              Enkripsi Enterprise
+            </div>
           </div>
 
-          {/* LOGIN CARD */}
-          <div className="bg-white/70 backdrop-blur-2xl border border-[#d2d2d7]/50 rounded-[28px] p-8 shadow-[0_20px_40px_rgba(0,0,0,0.04)]">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                login();
-              }}
-              className="space-y-4"
-            >
-              {/* INPUT NPP */}
-              <div>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="NPP"
-                  className="w-full px-5 py-3.5 rounded-2xl bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white focus:ring-4 focus:ring-blue-500/5 outline-none text-[15px] transition-all duration-300 placeholder:text-[#86868b]"
-                  required
-                />
-              </div>
+          {/* RIGHT */}
+          <div className="flex-1 p-16 flex flex-col justify-center">
+            <div className="max-w-[320px] mx-auto w-full">
+              <h1 className="text-2xl font-semibold mb-2">Selamat Datang</h1>
+              <p className="text-gray-500 text-sm mb-8">Masuk dengan akun NPP Anda</p>
 
-              {/* INPUT PASSWORD */}
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Kata sandi"
-                  className="w-full px-5 py-3.5 rounded-2xl bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white focus:ring-4 focus:ring-blue-500/5 outline-none text-[15px] transition-all duration-300 placeholder:text-[#86868b] pr-12"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#86868b] hover:text-[#1d1d1f] transition-colors p-1"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-
-              {/* ERROR MESSAGE DENGAN ANIMATE PRESENCE */}
-              <AnimatePresence mode="wait">
-                {error && (
-                  <motion.p 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="text-[#ff3b30] text-xs font-medium text-center"
-                  >
-                    {error}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-
-              {/* SUBMIT BUTTON */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-4 bg-[#0066cc] hover:bg-[#0077ed] text-white py-3.5 rounded-2xl text-[15px] font-semibold transition-all duration-300 shadow-lg shadow-blue-500/20 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Memproses...
-                  </>
-                ) : (
-                  "Masuk"
-                )}
-              </button>
-            </form>
+              <LoginForm
+                username={username}
+                setUsername={setUsername}
+                password={password}
+                setPassword={setPassword}
+                showPassword={showPassword}
+                setShowPassword={setShowPassword}
+                error={error}
+                loading={loading}
+                onSubmit={login}
+              />
+            </div>
           </div>
         </motion.div>
+
+        {/* MOBILE */}
+        <div className="md:hidden px-6">
+          <div className="text-center mb-8">
+            <Image src="/logo-kf.png" alt="Logo" width={120} height={45} className="mx-auto mb-4" />
+            <h1 className="text-xl font-bold">AIRA System</h1>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl shadow">
+            <LoginForm
+              username={username}
+              setUsername={setUsername}
+              password={password}
+              setPassword={setPassword}
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
+              error={error}
+              loading={loading}
+              onSubmit={login}
+            />
+          </div>
+        </div>
+
+      </main>
+    </div>
+  );
+}
+
+/* ✅ FIXED: no more any */
+function LoginForm({
+  username,
+  setUsername,
+  password,
+  setPassword,
+  showPassword,
+  setShowPassword,
+  error,
+  loading,
+  onSubmit,
+}: LoginFormProps) {
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
+      className="space-y-4"
+    >
+      {/* Username */}
+      <input
+        type="text"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        placeholder="NPP"
+        className="w-full px-4 py-3 rounded-xl bg-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
+        required
+      />
+
+      {/* Password */}
+      <div className="relative">
+        <input
+          type={showPassword ? "text" : "password"}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          className="w-full px-4 py-3 rounded-xl bg-gray-100 focus:ring-2 focus:ring-blue-500 outline-none pr-10"
+          required
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-3 top-1/2 -translate-y-1/2"
+        >
+          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
       </div>
 
-      {/* FOOTER */}
-      <footer className="py-8 text-center">
-        <p className="text-[#86868b] text-[11px] font-medium tracking-wide uppercase">
-          Developed by{" "}
-          <span className="text-[#1d1d1f]">
-            Lutfi Julpian | Yayang Lutfiana
-          </span>
-          {" "}• Industrial Hub 2026
-        </p>
-      </footer>
-    </div>
+      {/* Error */}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="text-red-500 text-sm text-center"
+          >
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+
+      {/* Button */}
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-blue-600 text-white py-3 rounded-xl flex items-center justify-center gap-2"
+      >
+        {loading ? <Loader2 className="animate-spin" size={18} /> : "Masuk"}
+        {!loading && <ChevronRight size={16} />}
+      </button>
+    </form>
   );
 }
