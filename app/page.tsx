@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Zap,
   ArrowRight,
   Fingerprint,
   FileCheck,
@@ -108,6 +107,31 @@ export default function Home() {
                       <h4 className="text-[#1d1d1f] font-semibold mb-2">Tantangan</h4>
                       <p>Sistem kertas manual berisiko tinggi terhadap kesalahan data dan memperlambat alur kerja persetujuan.</p>
                     </section>
+                    <section>
+                    <h4 className="text-[#1d1d1f] font-semibold mb-3">User Roles</h4>
+
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="p-3 bg-[#f5f5f7] rounded-xl border border-[#d2d2d7]/30">
+                        <p className="font-semibold text-[#1d1d1f]">Admin</p>
+                        <p className="text-[#86868b] text-xs">Mengelola data sistem & user</p>
+                      </div>
+
+                      <div className="p-3 bg-[#f5f5f7] rounded-xl border border-[#d2d2d7]/30">
+                        <p className="font-semibold text-[#1d1d1f]">SPV</p>
+                        <p className="text-[#86868b] text-xs">Melakukan approval inspeksi</p>
+                      </div>
+
+                      <div className="p-3 bg-[#f5f5f7] rounded-xl border border-[#d2d2d7]/30">
+                        <p className="font-semibold text-[#1d1d1f]">ASMAN</p>
+                        <p className="text-[#86868b] text-xs">Monitoring & validasi laporan</p>
+                      </div>
+
+                      <div className="p-3 bg-[#f5f5f7] rounded-xl border border-[#d2d2d7]/30">
+                        <p className="font-semibold text-[#1d1d1f]">Inspector</p>
+                        <p className="text-[#86868b] text-xs">Melakukan inspeksi langsung</p>
+                      </div>
+                    </div>
+                  </section>
                   </div>
                   <div className="space-y-6">
                     <section>
@@ -143,9 +167,6 @@ export default function Home() {
       }`}>
         <div className="max-w-[1100px] mx-auto px-5 flex justify-between items-center">
           <div className="flex items-center gap-2 font-semibold text-base md:text-lg tracking-tight">
-            <div className="w-7 h-7 bg-[#1d1d1f] rounded-lg flex items-center justify-center">
-                <Zap className="text-white fill-white" size={14} />
-            </div>
             AIRA <span className="text-[#86868b] font-normal">SYSTEM</span>
           </div>
 
@@ -167,49 +188,66 @@ export default function Home() {
       </nav>
 
       {/* 🍎 HERO SECTION (RESPONSIF FONT & BUTTONS) */}
-      <section className="pt-32 pb-20 md:pt-48 md:pb-32 px-6 bg-[#f5f5f7]">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.span
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="inline-block mb-4 text-[11px] md:text-[13px] font-semibold tracking-wider text-[#0066cc] uppercase"
-          >
-            Industrial Case Study
-          </motion.span>
+      <section className="pt-28 pb-20 md:pt-36 md:pb-24 px-6 bg-[#f5f5f7]">
+      <div className="max-w-3xl mx-auto text-center">
 
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-[72px] font-semibold leading-[1.1] tracking-tight mb-6 md:mb-8 text-[#1d1d1f]"
-          >
-            AIRA: Digitalisasi AHU <br />
-            <span className="text-[#86868b]">PT Kimia Farma Plant Banjaran.</span>
-          </motion.h1>
+        {/* LABEL */}
+        <motion.span
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }}
+          className="inline-block mb-3 text-[11px] font-medium tracking-wide text-[#6e6e73] uppercase"
+        >
+          Industrial Case Study
+        </motion.span>
 
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-            className="text-[#86868b] text-base md:text-2xl font-normal max-w-2xl mx-auto mb-10 md:mb-14 leading-relaxed"
-          >
-            Transformasi inspeksi Air Handling Unit berbasis NFC dan E-Signature untuk akurasi data industri farmasi.
-          </motion.p>
+        {/* TITLE */}
+        <motion.h1 
+          initial={{ opacity: 0, y: 16 }} 
+          animate={{ opacity: 1, y: 0 }}
+          className="text-3xl md:text-5xl font-semibold leading-tight tracking-tight mb-4 text-[#1d1d1f]"
+        >
+          AIRA Digitalisasi AHU
+          <br />
+          <span className="text-[#6e6e73] font-normal">
+            PT Kimia Farma Plant Banjaran
+          </span>
+        </motion.h1>
 
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6"
+        {/* DESCRIPTION */}
+        <motion.p 
+          initial={{ opacity: 0, y: 16 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.1 }}
+          className="text-[#6e6e73] text-sm md:text-base max-w-xl mx-auto mb-8 leading-relaxed"
+        >
+          Sistem inspeksi Air Handling Unit berbasis NFC dan E-Signature untuk meningkatkan akurasi dan efisiensi operasional di industri farmasi.
+        </motion.p>
+
+        {/* BUTTON */}
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ delay: 0.2 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-3"
+        >
+          <button 
+            onClick={() => router.push("/login")}
+            className="w-full sm:w-auto bg-[#1d1d1f] text-white px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition"
           >
-            <button 
-              onClick={() => router.push("/login")}
-              className="w-full sm:w-auto bg-[#0066cc] text-white px-8 py-3.5 rounded-full text-base md:text-lg font-medium shadow-lg shadow-blue-500/10 active:scale-95"
-            >
-              Mulai Demo
-            </button>
-            <button 
-              onClick={() => setIsDetailOpen(true)}
-              className="group flex items-center gap-2 text-[#0066cc] text-base md:text-lg font-medium hover:underline transition"
-            >
-              Lihat Detail Proyek <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-            </button>
-          </motion.div>
-        </div>
-      </section>
+            Mulai Demo
+          </button>
+
+          <button 
+            onClick={() => setIsDetailOpen(true)}
+            className="flex items-center gap-1.5 text-[#1d1d1f] text-sm font-medium hover:underline"
+          >
+            Detail
+            <ArrowRight size={16} />
+          </button>
+        </motion.div>
+
+      </div>
+    </section>
 
       {/* 🍎 SYSTEM PREVIEW (SLIDER) */}
       <section className="py-20 md:py-32 px-6 bg-white">
