@@ -33,42 +33,33 @@ export default function Sidebar() {
   const [isDesktop, setIsDesktop] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
 
-  // State untuk sub-menu
   const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({
     "Master Data": pathname.startsWith("/admin/master"),
     "Forms": pathname.startsWith("/admin/forms"),
   });
 
-  
-  // Handle window resize dengan aman untuk SSR
   useEffect(() => {
-    const checkIsDesktop = () => {
-      setIsDesktop(window.innerWidth >= 1024);
-    };
-    
+    const checkIsDesktop = () => setIsDesktop(window.innerWidth >= 1024);
     checkIsDesktop();
     window.addEventListener("resize", checkIsDesktop);
     return () => window.removeEventListener("resize", checkIsDesktop);
   }, []);
 
   const toggleSubMenu = (label: string) => {
-    setOpenSubMenus((prev) => ({
-      ...prev,
-      [label]: !prev[label],
-    }));
+    setOpenSubMenus((prev) => ({ ...prev, [label]: !prev[label] }));
   };
 
   const isActive = (href: string) =>
     pathname === href || (href !== "/admin/dashboard" && pathname.startsWith(href));
 
+  // 🔥 UPDATE: "My Profile" dihapus dari sini
   const menu = [
     { type: "label", label: "Main Navigation" },
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutGrid },
-    { label: "My Profile", href: "/profile", icon: User },
     { 
       label: "Review Laporan", 
-      href: "/admin/spv/inspection", // Arahkan ke list, bukan folder
-      icon: ClipboardCheck // Gunakan ikon yang relevan
+      href: "/admin/spv/inspection",
+      icon: ClipboardCheck 
     },
     
     { type: "label", label: "Asset Management" },
@@ -101,64 +92,34 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     try {
-      // 1. Panggil API backend agar tercatat di audit trail
-      // apiFetch biasanya otomatis menyertakan token dari cookie/storage
       await apiFetch("/auth/logout", { method: "POST" });
     } catch (err) {
       console.error("Gagal mencatat audit logout:", err);
     } finally {
-      // 2. Apapun hasilnya (berhasil/gagal API), hapus token secara lokal
-      logout(); // Memanggil fungsi logout bawaan kamu untuk hapus token & redirect
+      logout();
     }
   };
-
-  // ... di bagian bawah (tombol Sign Out) ...
-  <button 
-    onClick={handleLogout} // 👈 Ubah dari logout ke handleLogout
-    className="group w-full flex items-center justify-center gap-3 bg-red-500/5 hover:bg-red-500/10 text-red-500/70 hover:text-red-500 py-3 rounded-xl transition-all border border-red-500/10 font-semibold text-sm"
-  >
-    <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
-    Sign Out
-  </button>
 
   return (
     <>
       {/* MOBILE TOP BAR */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 py-4 bg-slate-900/80 backdrop-blur-md border-b border-white/5">
         <span className="font-bold text-teal-400 tracking-tighter text-xl">AIRA</span>
-        <button 
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 bg-slate-800 rounded-lg"
-        >
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 bg-slate-800 rounded-lg">
           {mobileOpen ? <X size={20} className="text-white" /> : <Menu size={20} className="text-teal-400" />}
         </button>
       </div>
 
-      {/* OVERLAY MOBILE */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setMobileOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-          />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" />
         )}
       </AnimatePresence>
 
       <motion.aside
         initial={false}
         animate={{ x: mobileOpen || isDesktop ? 0 : -280 }}
-        className="
-          fixed top-0 left-0 z-50
-          h-screen w-64
-          bg-[#0f172a]
-          border-r border-white/5
-          text-slate-400
-          flex flex-col
-          transition-shadow duration-300
-        "
+        className="fixed top-0 left-0 z-50 h-screen w-64 bg-[#0f172a] border-r border-white/5 text-slate-400 flex flex-col transition-shadow duration-300"
       >
         {/* LOGO AREA */}
         <div className="px-8 py-8 flex items-center gap-3">
@@ -169,12 +130,11 @@ export default function Sidebar() {
             <h1 className="text-white font-bold tracking-tight leading-none text-lg">
               AIRA <span className="text-teal-500">SYSTEM</span>
             </h1>
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1 font-semibold">
-              Industrial Hub
-            </p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1 font-semibold">Industrial Hub</p>
           </div>
         </div>
 
+        {/* NAVIGATION Area */}
         <nav className="flex-1 px-4 overflow-y-auto custom-scrollbar space-y-1">
           {menu.map((item, idx) => {
             if (item.type === "label") {
@@ -193,13 +153,6 @@ export default function Sidebar() {
                   <div className={`group flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 mb-1 ${active ? "bg-teal-500/10 text-teal-400 font-semibold ring-1 ring-teal-500/20" : "hover:bg-white/5 hover:text-slate-200"}`}>
                     <Icon size={20} className={active ? "text-teal-400" : "text-slate-500 group-hover:text-teal-400"} />
                     <span className="text-sm">{item.label}</span>
-
-                    {/* 🔥 FIX: Logika Badge dipindah ke dalam sini */}
-                    {item.label === "Approval" && pendingCount > 0 && (
-                      <span className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full animate-pulse font-bold">
-                        {pendingCount}
-                      </span>
-                    )}
                     {active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.6)]" />}
                   </div>
                 </Link>
@@ -242,8 +195,20 @@ export default function Sidebar() {
           })}
         </nav>
 
-        <div className="p-4 border-t border-white/5 bg-[#0f172a]">
-          <button onClick={handleLogout} className="group w-full flex items-center justify-center gap-3 bg-red-500/5 hover:bg-red-500/10 text-red-500/70 hover:text-red-500 py-3 rounded-xl transition-all border border-red-500/10 font-semibold text-sm">
+        {/* 🔥 FOOTER AREA (Sign Out & Profile Icon) */}
+        <div className="p-4 border-t border-white/5 bg-[#0f172a] flex items-center gap-2">
+          {/* Tombol Profile Ikon */}
+          <Link href="/profile" onClick={() => setMobileOpen(false)}>
+            <div className={`p-3 rounded-xl transition-all border border-white/5 flex items-center justify-center ${isActive("/profile") ? "bg-teal-500/10 text-teal-400 border-teal-500/20" : "bg-white/5 text-slate-400 hover:text-teal-400 hover:bg-white/10"}`}>
+              <User size={18} />
+            </div>
+          </Link>
+
+          {/* Tombol Sign Out */}
+          <button 
+            onClick={handleLogout} 
+            className="group flex-1 flex items-center justify-center gap-3 bg-red-500/5 hover:bg-red-500/10 text-red-500/70 hover:text-red-500 py-3 rounded-xl transition-all border border-red-500/10 font-semibold text-sm"
+          >
             <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
             Sign Out
           </button>
