@@ -116,31 +116,25 @@ const [filterDate, setFilterDate] = useState("")
       return
     }
 
-    const handleCreateFilterSchedule = async () => {
-      if (!filterAHU || !filterDate) {
-        alert("AHU dan tanggal wajib diisi")
-        return
-      }
-
       try {
-        await createFilterSchedule({
-          ahu_id: filterAHU,
-          start_date: filterDate
-        })
+      await createFilterSchedule({
+        ahu_id: filterAHU,
+        start_date: filterDate
+      })
 
-        await loadAll()
+      await loadAll()
 
-        setShowFilterModal(false)
-        setFilterAHU("")
-        setFilterDate("")
+      setShowFilterModal(false)
+      setFilterAHU("")
+      setFilterDate("")
 
-        alert("Schedule ganti filter berhasil dibuat")
+      alert("Schedule ganti filter berhasil dibuat")
 
-      } catch (err) {
-        console.error(err)
-        alert("Gagal membuat schedule")
-      }
+    } catch (err) {
+      console.error(err)
+      alert("Gagal membuat schedule")
     }
+
 
     await createFilterSchedule({
       ahu_id: filterAHU,
@@ -161,7 +155,9 @@ const [filterDate, setFilterDate] = useState("")
     init();
   }, []);
 
-  const filteredPlans = plans.filter((p) => p.status === activeTab);
+  const filteredPlans = plans
+  .filter((p) => p.status === activeTab)
+  .filter((p) => p.period !== "ganti_filter")
 
   const resetForm = () => {
     setAhuId("");
@@ -377,7 +373,6 @@ const [filterDate, setFilterDate] = useState("")
                   <option value="bulanan">Bulanan</option>
                   <option value="enam_bulan">6 Bulanan</option>
                   <option value="tahunan">Tahunan</option>
-                  <option value="ganti_filter">Ganti Filter</option>
                 </select>
 
                 <div className="grid grid-cols-2 gap-3">
