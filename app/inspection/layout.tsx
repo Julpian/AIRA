@@ -11,62 +11,89 @@ export default function InspectorLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname() || "";
+  const currentYear = new Date().getFullYear();
 
-  // Kita tidak butuh lagi useEffect & state mounted untuk seluruh layout
-  // Next.js App Router sudah bisa handle usePathname di server dengan baik.
-
+  // Deteksi halaman form (full screen tanpa sidebar & padding)
   const isFormPage =
     pathname.includes("/inspection/") &&
     !pathname.endsWith("/dashboard") &&
     !pathname.endsWith("/scan-nfc");
 
-  const currentYear = new Date().getFullYear();
-
   return (
     <RequireRole roles={["inspector"]}>
-      <div className="flex min-h-screen bg-[#F9FAFB] antialiased selection:bg-blue-100">
-        
+      <div className="flex flex-col min-h-screen bg-[#F8F9FA] antialiased selection:bg-blue-100">
+
         {/* SIDEBAR DESKTOP */}
         {!isFormPage && (
-          <div className="hidden lg:block">
+          <aside className="hidden lg:block">
             <SidebarInspector />
-          </div>
+          </aside>
         )}
 
         {/* MAIN CONTENT */}
         <main
           className={`
-            flex-1 min-h-screen w-full transition-all duration-300 flex flex-col
+            flex-1 flex flex-col transition-all duration-300
             ${!isFormPage ? "lg:ml-64" : "lg:ml-0"}
           `}
         >
+          {/* WRAPPER */}
           <div
             className={`
-              max-w-7xl mx-auto w-full flex-1
-              ${isFormPage ? "p-0" : "p-4 md:p-8 pb-20 lg:pb-12"}
+              w-full max-w-md mx-auto flex-1 flex flex-col
+              ${isFormPage ? "p-0" : "px-4 pt-6 pb-28"}
             `}
           >
-            <div className={isFormPage ? "p-5 md:p-10" : ""}>
+            {/* CONTENT */}
+            <div
+              className={`flex-1 ${
+                isFormPage ? "bg-white min-h-screen p-5" : ""
+              }`}
+            >
               {children}
             </div>
+
+            {/* FOOTER MOBILE (clean aesthetic) */}
+            {!isFormPage && (
+              <footer className="w-full py-10 px-6 text-center mt-auto">
+                <div className="h-[1px] w-8 bg-gray-200 mx-auto mb-4" />
+
+                <p
+                  className="text-[10px] text-gray-400 leading-relaxed uppercase tracking-[0.15em]"
+                  suppressHydrationWarning
+                >
+                  Developed by <br />
+                  <span className="font-bold text-gray-600 mt-1 inline-block">
+                    Lutfi Julpian | Yayang Lufiana
+                  </span>
+                  <br />
+                  <span className="opacity-50 mt-1 inline-block">
+                    &copy; {currentYear} AIRA SYSTEM
+                  </span>
+                </p>
+              </footer>
+            )}
           </div>
 
-          {/* FOOTER */}
+          {/* FOOTER DESKTOP */}
           {!isFormPage && (
             <footer className="w-full py-6 px-4 text-center text-xs md:text-sm text-gray-500 border-t border-gray-100 mt-auto mb-20 lg:mb-0">
-              {/* Gunakan suppressHydrationWarning di sini karena Date() bisa beda antara server/client */}
               <p suppressHydrationWarning>
-                Develop by <span className="font-medium text-gray-700">Lutfi Julpian | Yayang Lufiana</span> &copy; {currentYear}
+                Developed by{" "}
+                <span className="font-medium text-gray-700">
+                  Lutfi Julpian | Yayang Lufiana
+                </span>{" "}
+                &copy; {currentYear}
               </p>
             </footer>
           )}
         </main>
 
-        {/* MOBILE NAV */}
+        {/* BOTTOM NAV (mobile only) */}
         {!isFormPage && (
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
+          <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
             <MobileBottomNav />
-          </div>
+          </nav>
         )}
       </div>
     </RequireRole>

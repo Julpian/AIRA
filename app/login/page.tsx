@@ -20,7 +20,6 @@ type LoginResponse = {
   role: string;
 };
 
-/* ✅ TYPE FIX (ganti any) */
 type LoginFormProps = {
   username: string;
   setUsername: (value: string) => void;
@@ -36,11 +35,11 @@ type LoginFormProps = {
 export default function LoginPage() {
   const router = useRouter();
 
-  const [username, setUsername] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
 
   const login = async () => {
     setError(null);
@@ -61,8 +60,10 @@ export default function LoginPage() {
     }
   };
 
+  const currentYear = new Date().getFullYear();
+
   return (
-    <div className={`${inter.className} min-h-screen bg-[#fbfbfd] text-[#1d1d1f] flex items-center justify-center`}>
+    <div className={`${inter.className} min-h-screen bg-[#fbfbfd] text-[#1d1d1f] flex flex-col items-center justify-center relative overflow-hidden`}>
       
       {/* Background */}
       <div className="fixed inset-0 -z-10">
@@ -70,16 +71,16 @@ export default function LoginPage() {
         <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#5e5ce6]/5 blur-[120px] rounded-full" />
       </div>
 
-      <main className="w-full max-w-[1000px] md:px-6">
+      <main className="w-full max-w-[1000px] md:px-6 z-10">
         
         {/* DESKTOP */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="hidden md:flex bg-white/70 backdrop-blur-3xl border border-white/40 shadow-xl rounded-3xl overflow-hidden min-h-[600px]"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="hidden md:flex bg-white/70 backdrop-blur-3xl border border-white/40 shadow-2xl rounded-[32px] overflow-hidden min-h-[600px]"
         >
           {/* LEFT */}
-          <div className="w-[40%] bg-[#f5f5f7]/50 p-12 flex flex-col justify-between border-r">
+          <div className="w-[40%] bg-[#f5f5f7]/50 p-12 flex flex-col justify-between border-r border-gray-100">
             <div>
               <Image src="/logo-kf.png" alt="Logo" width={130} height={50} className="mb-12" />
               <h2 className="text-3xl font-bold mb-4">
@@ -90,8 +91,8 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3 text-sm bg-white p-3 rounded-xl">
-              <ShieldCheck size={16} className="text-blue-600" />
+            <div className="flex items-center gap-3 text-xs text-gray-400 bg-white/50 py-2 px-4 rounded-full w-fit">
+              <ShieldCheck size={14} className="text-blue-600" />
               Enkripsi Enterprise
             </div>
           </div>
@@ -118,13 +119,13 @@ export default function LoginPage() {
         </motion.div>
 
         {/* MOBILE */}
-        <div className="md:hidden px-6">
-          <div className="text-center mb-8">
-            <Image src="/logo-kf.png" alt="Logo" width={120} height={45} className="mx-auto mb-4" />
-            <h1 className="text-xl font-bold">AIRA System</h1>
+        <div className="md:hidden px-6 pt-12 pb-24">
+          <div className="text-center mb-10">
+            <Image src="/logo-kf.png" alt="Logo" width={120} height={45} className="mx-auto mb-6" />
+            <h1 className="text-2xl font-bold">AIRA System</h1>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl shadow">
+          <div className="bg-white p-8 rounded-[24px] shadow-sm border border-gray-100">
             <LoginForm
               username={username}
               setUsername={setUsername}
@@ -140,11 +141,20 @@ export default function LoginPage() {
         </div>
 
       </main>
+
+      {/* FOOTER */}
+      <footer className="w-full py-8 text-center text-xs text-gray-400">
+        <p>
+          Developed by <span className="text-gray-600 font-medium">Lutfi Julpian | Yayang Lufiana</span>
+        </p>
+        <p className="mt-1 opacity-70">
+          &copy; {currentYear} AIRA System
+        </p>
+      </footer>
     </div>
   );
 }
 
-/* ✅ FIXED: no more any */
 function LoginForm({
   username,
   setUsername,
@@ -164,57 +174,48 @@ function LoginForm({
       }}
       className="space-y-4"
     >
-      {/* Username */}
       <input
         type="text"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
         placeholder="NPP"
-        className="w-full px-4 py-3 rounded-xl bg-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
+        className="w-full px-5 py-3.5 rounded-2xl bg-[#f5f5f7] focus:ring-4 focus:ring-blue-500/10 outline-none"
         required
       />
 
-      {/* Password */}
       <div className="relative">
         <input
           type={showPassword ? "text" : "password"}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
-          className="w-full px-4 py-3 rounded-xl bg-gray-100 focus:ring-2 focus:ring-blue-500 outline-none pr-10"
+          className="w-full px-5 py-3.5 rounded-2xl bg-[#f5f5f7] focus:ring-4 focus:ring-blue-500/10 outline-none pr-12"
           required
         />
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 -translate-y-1/2"
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
         >
           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
       </div>
 
-      {/* Error */}
       <AnimatePresence>
         {error && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-red-500 text-sm text-center"
-          >
+          <motion.div className="text-red-500 text-sm text-center">
             {error}
-          </motion.p>
+          </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Button */}
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white py-3 rounded-xl flex items-center justify-center gap-2"
+        className="w-full bg-blue-600 text-white py-3.5 rounded-2xl flex items-center justify-center gap-2"
       >
         {loading ? <Loader2 className="animate-spin" size={18} /> : "Masuk"}
-        {!loading && <ChevronRight size={16} />}
+        {!loading && <ChevronRight size={18} />}
       </button>
     </form>
   );

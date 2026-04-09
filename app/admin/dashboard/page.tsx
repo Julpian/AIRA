@@ -79,20 +79,66 @@ export default function EnhancedAdminDashboard() {
     return ["ALL", ...Array.from(new Set(units as string[]))];
   }, [chartRows]);
 
+  const getFilterStatus = (value: number | undefined, type: string) => {
+    if (!value) return "normal";
+
+    switch (type) {
+      case "g4":
+        return value > 100 ? "warning" : "normal";
+      case "f6":
+        return value > 150 ? "warning" : "normal";
+      case "f9":
+        return value > 200 ? "warning" : "normal";
+      case "h13":
+        return value > 250 ? "danger" : "normal";
+      default:
+        return "normal";
+    }
+  };
+
   const chartData = useMemo(() => {
     const grouped: Record<string, ChartData> = {};
+
     (chartRows || [])
       .filter((r) => selectedAHU === "ALL" || r.unit_code === selectedAHU)
       .forEach((r) => {
         const month = new Date(r.Month).toLocaleDateString("id-ID", { month: "short" });
+
         if (!grouped[month]) grouped[month] = { month };
-        
+
         if (r.Label.includes("Pre Filter")) grouped[month].g4 = r.Value;
         if (r.Label.includes("Medium Filter (F6)")) grouped[month].f6 = r.Value;
         if (r.Label.includes("Medium Filter (F9)")) grouped[month].f9 = r.Value;
         if (r.Label.includes("Hepa")) grouped[month].h13 = r.Value;
       });
-    return Object.values(grouped);
+
+    const result = Object.values(grouped);
+
+    // 🔥 ANALISA (TANPA UBAH UI)
+    result.forEach((d) => {
+      const g4Status = getFilterStatus(d.g4, "g4");
+      const f6Status = getFilterStatus(d.f6, "f6");
+      const f9Status = getFilterStatus(d.f9, "f9");
+      const h13Status = getFilterStatus(d.h13, "h13");
+
+      if (g4Status === "warning") {
+        console.warn(`⚠️ Pre Filter (G4) mulai kotor di bulan ${d.month}`);
+      }
+
+      if (f6Status === "warning") {
+        console.warn(`⚠️ Filter F6 mulai naik tekanan di bulan ${d.month}`);
+      }
+
+      if (f9Status === "warning") {
+        console.warn(`⚠️ Filter F9 perlu perhatian di bulan ${d.month}`);
+      }
+
+      if (h13Status === "danger") {
+        console.warn(`🚨 HEPA HARUS DIGANTI di bulan ${d.month} !!!`);
+      }
+    });
+
+    return result;
   }, [chartRows, selectedAHU]);
 
   if (loading || !data) {
