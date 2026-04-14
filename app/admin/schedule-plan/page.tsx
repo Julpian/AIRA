@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CalendarClock,
@@ -49,17 +49,11 @@ const MONTH_LABELS = [
 ];
 
 function normalizeList<T>(res: ApiListResponse<T> | null | undefined): T[] {
-  if (!res) return []; // Jika null atau undefined, langsung kembalikan array kosong []
-  
-  if (Array.isArray(res)) {
-    return res;
-  }
-  
-  // Cek apakah properti 'data' ada di dalam objek res
+  if (!res) return [];
+  if (Array.isArray(res)) return res;
   if (typeof res === "object" && "data" in res && Array.isArray(res.data)) {
     return res.data;
   }
-  
   return [];
 }
 
@@ -71,11 +65,7 @@ const StatusBadge = ({ status }: { status: SchedulePlan["status"] }) => (
         : "bg-teal-500/20 text-teal-300"
     }`}
   >
-    {status === "draft" ? (
-      <FileEdit size={12} />
-    ) : (
-      <CheckCircle2 size={12} />
-    )}
+    {status === "draft" ? <FileEdit size={12} /> : <CheckCircle2 size={12} />}
     {status === "draft" ? "Draft" : "Generated"}
   </span>
 );
@@ -90,74 +80,61 @@ export default function SchedulePlanPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<SchedulePlan["status"]>("draft");
   const [showForm, setShowForm] = useState(false);
-  const [showFilterModal, setShowFilterModal] = useState(false)
-const [filterAHU, setFilterAHU] = useState("")
-const [filterDate, setFilterDate] = useState("")
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filterAHU, setFilterAHU] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const loadAll = async () => {
     try {
       const ahuRes = await getAHUs();
       const planRes = await getSchedulePlans();
-      
-      // normalizeList sekarang aman digunakan meskipun res bernilai null
       setAhus(normalizeList(ahuRes));
       setPlans(normalizeList(planRes));
     } catch (error) {
-      console.error("Gagal memuat data Schedule Plan:", error);
-      // Optional: set ke array kosong jika error
+      console.error("Gagal memuat data:", error);
       setAhus([]);
       setPlans([]);
     }
   };
 
-  const handleCreateFilterSchedule = async () => {
-    if (!filterAHU || !filterDate) {
-      alert("AHU dan tanggal wajib diisi")
-      return
-    }
-
-      try {
-      await createFilterSchedule({
-        ahu_id: filterAHU,
-        start_date: filterDate
-      })
-
-      await loadAll()
-
-      setShowFilterModal(false)
-      setFilterAHU("")
-      setFilterDate("")
-
-      alert("Schedule ganti filter berhasil dibuat")
-
-    } catch (err) {
-      console.error(err)
-      alert("Gagal membuat schedule")
-    }
-
-
-    await createFilterSchedule({
-      ahu_id: filterAHU,
-      start_date: filterDate
-    })
-
-    await loadAll()
-
-    setShowFilterModal(false)
-    setFilterAHU("")
-    setFilterDate("")
-
-    alert("Schedule ganti filter berhasil dibuat")
-  }
-
   useEffect(() => {
-    const init = async () => await loadAll();
-    init();
+    loadAll();
   }, []);
 
-  const filteredPlans = plans
-  .filter((p) => p.status === activeTab)
-  .filter((p) => p.period !== "ganti_filter")
+  const handleCreateFilterSchedule = async () => {
+    if (!filterAHU || !filterDate || isSaving) {
+      if (!isSaving) alert("AHU dan tanggal wajib diisi");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await createFilterSchedule({
+        ahu_id: filterAHU,
+        start_date: filterDate,
+      });
+
+      await loadAll();
+
+      setShowFilterModal(false);
+      setFilterAHU("");
+      setFilterDate("");
+
+      alert("Schedule ganti filter berhasil dibuat");
+    } catch (err) {
+      console.error(err);
+      alert("Gagal membuat schedule");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const filteredPlans = useMemo(() => {
+    return plans
+      .filter((p) => p.status === activeTab)
+      .filter((p) => p.period !== "ganti_filter");
+  }, [plans, activeTab]);
 
   const resetForm = () => {
     setAhuId("");
@@ -177,19 +154,22 @@ const [filterDate, setFilterDate] = useState("")
       month: period === "bulanan" ? null : Number(month),
     };
 
-    if (editingId) {
-      await updateSchedulePlan(editingId, payload);
-    } else {
-      await createSchedulePlan({ ahu_id: ahuId, ...payload });
+    try {
+      if (editingId) {
+        await updateSchedulePlan(editingId, payload);
+      } else {
+        await createSchedulePlan({ ahu_id: ahuId, ...payload });
+      }
+      resetForm();
+      loadAll();
+    } catch (err) {
+      console.error(err);
+      alert("Gagal menyimpan plan");
     }
-
-    resetForm();
-    loadAll();
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-teal-900 px-4 py-6">
-
+    <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-teal-900 px-4 py-6">
       <motion.div
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
@@ -200,12 +180,8 @@ const [filterDate, setFilterDate] = useState("")
           <div className="flex items-center gap-3">
             <CalendarClock className="text-teal-400" />
             <div>
-              <h1 className="text-xl font-semibold text-white">
-                Schedule Plan AHU
-              </h1>
-              <p className="text-sm text-slate-400">
-                Industrial inspection scheduler
-              </p>
+              <h1 className="text-xl font-semibold text-white">Schedule Plan AHU</h1>
+              <p className="text-sm text-slate-400">Industrial inspection scheduler</p>
             </div>
           </div>
 
@@ -214,8 +190,7 @@ const [filterDate, setFilterDate] = useState("")
               onClick={() => setShowFilterModal(true)}
               className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm"
             >
-              <Wind size={16} />
-              Ganti Filter
+              <Wind size={16} /> Ganti Filter
             </button>
             <button
               onClick={() => setShowForm(true)}
@@ -223,7 +198,6 @@ const [filterDate, setFilterDate] = useState("")
             >
               <Plus size={16} /> Plan Baru
             </button>
-
             <button
               onClick={async () => {
                 if (!confirm("Generate jadwal tahun ini?")) return;
@@ -246,19 +220,16 @@ const [filterDate, setFilterDate] = useState("")
               key={t}
               onClick={() => setActiveTab(t)}
               className={`pb-2 text-sm ${
-                activeTab === t
-                  ? "border-b-2 border-teal-400 text-teal-300"
-                  : "text-slate-400"
+                activeTab === t ? "border-b-2 border-teal-400 text-teal-300" : "text-slate-400"
               }`}
             >
-              {t === "draft" ? "Draft" : "Generated"} (
-              {plans.filter((p) => p.status === t).length})
+              {t === "draft" ? "Draft" : "Generated"} ({plans.filter((p) => p.status === t).length})
             </button>
           ))}
         </div>
 
         {/* TABLE */}
-        <div className="overflow-hidden rounded-2xl border bg-slate-800/60 bg-slate-800/60 backdrop-blur">
+        <div className="overflow-hidden rounded-2xl border bg-slate-800/60 backdrop-blur">
           <table className="w-full text-sm">
             <thead className="bg-slate-800/60 text-slate-400">
               <tr>
@@ -270,7 +241,6 @@ const [filterDate, setFilterDate] = useState("")
                 <th className="p-3 text-center">Aksi</th>
               </tr>
             </thead>
-
             <tbody>
               {filteredPlans.map((p) => (
                 <tr key={p.id} className="border-t bg-slate-800/60">
@@ -278,11 +248,7 @@ const [filterDate, setFilterDate] = useState("")
                   <td className="p-3 text-center capitalize">{p.period}</td>
                   <td className="p-3 text-center">Minggu {p.week_of_month}</td>
                   <td className="p-3 text-center">
-                    {p.period === "bulanan"
-                      ? "Setiap Bulan"
-                      : p.month
-                      ? MONTH_LABELS[p.month]
-                      : "-"}
+                    {p.period === "bulanan" ? "Setiap Bulan" : p.month ? MONTH_LABELS[p.month] : "-"}
                   </td>
                   <td className="p-3 text-center">
                     <StatusBadge status={p.status} />
@@ -303,7 +269,6 @@ const [filterDate, setFilterDate] = useState("")
                         >
                           <Pencil size={14} /> Edit
                         </button>
-
                         <button
                           onClick={async () => {
                             if (!confirm("Hapus plan ini?")) return;
@@ -325,7 +290,7 @@ const [filterDate, setFilterDate] = useState("")
           </table>
         </div>
 
-        {/* MODAL */}
+        {/* MODAL PLAN BARU */}
         <AnimatePresence>
           {showForm && (
             <motion.div
@@ -338,37 +303,29 @@ const [filterDate, setFilterDate] = useState("")
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="w-full max-w-md rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl"
+                className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900 p-6 backdrop-blur-xl"
               >
                 <div className="mb-4 flex items-center justify-between">
-                  <p className="font-medium">
-                    {editingId ? "Edit Plan" : "Tambah Plan"}
-                  </p>
-                  <button onClick={resetForm}>
-                    <X />
-                  </button>
+                  <p className="font-medium">{editingId ? "Edit Plan" : "Tambah Plan"}</p>
+                  <button onClick={resetForm}><X /></button>
                 </div>
 
                 <select
                   value={ahuId}
                   onChange={(e) => setAhuId(e.target.value)}
                   disabled={!!editingId}
-                  className="mb-3 w-full rounded-xl border bg-slate-800/60 bg-slate-800/60 px-4 py-2"
+                  className="mb-3 w-full rounded-xl border bg-slate-800/60 px-4 py-2"
                 >
                   <option value="">Pilih AHU</option>
-                  {ahus.filter(a=>a.is_active).map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.unit_code}
-                    </option>
+                  {ahus.filter(a => a.is_active).map((a) => (
+                    <option key={a.id} value={a.id}>{a.unit_code}</option>
                   ))}
                 </select>
 
                 <select
                   value={period}
-                  onChange={(e) =>
-                    setPeriod(e.target.value as SchedulePlan["period"])
-                  }
-                  className="mb-3 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2"
+                  onChange={(e) => setPeriod(e.target.value as SchedulePlan["period"])}
+                  className="mb-3 w-full rounded-xl border border-white/10 bg-slate-800/60 px-4 py-2"
                 >
                   <option value="bulanan">Bulanan</option>
                   <option value="enam_bulan">6 Bulanan</option>
@@ -379,12 +336,10 @@ const [filterDate, setFilterDate] = useState("")
                   <select
                     value={week}
                     onChange={(e) => setWeek(Number(e.target.value))}
-                    className="rounded-xl border bg-slate-800/60 bg-slate-800/60 px-4 py-2"
+                    className="rounded-xl border bg-slate-800/60 px-4 py-2"
                   >
                     {[1, 2, 3, 4].map((w) => (
-                      <option key={w} value={w}>
-                        Minggu {w}
-                      </option>
+                      <option key={w} value={w}>Minggu {w}</option>
                     ))}
                   </select>
 
@@ -392,28 +347,80 @@ const [filterDate, setFilterDate] = useState("")
                     <select
                       value={month}
                       onChange={(e) => setMonth(Number(e.target.value))}
-                      className="rounded-xl border bg-slate-800/60 bg-slate-800/60 px-4 py-2"
+                      className="rounded-xl border bg-slate-800/60 px-4 py-2"
                     >
                       <option value="">Bulan</option>
                       {MONTH_LABELS.slice(1).map((m, i) => (
-                        <option key={i + 1} value={i + 1}>
-                          {m}
-                        </option>
+                        <option key={i + 1} value={i + 1}>{m}</option>
                       ))}
                     </select>
                   )}
                 </div>
 
                 <div className="mt-4 flex gap-2">
-                  <button
-                    onClick={handleSubmit}
-                    className="flex-1 rounded-xl bg-teal-500 py-2 font-medium text-slate-900 hover:bg-teal-400"
-                  >
+                  <button onClick={handleSubmit} className="flex-1 rounded-xl bg-teal-500 py-2 font-medium text-slate-900 hover:bg-teal-400">
                     Simpan
                   </button>
+                  <button onClick={resetForm} className="flex-1 rounded-xl border border-white/10 bg-white/5 py-2">
+                    Batal
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
+        {/* MODAL GANTI FILTER */}
+        <AnimatePresence>
+          {showFilterModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900 p-6 backdrop-blur-xl"
+              >
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="font-medium">Buat Schedule Ganti Filter</p>
+                  <button onClick={() => setShowFilterModal(false)}><X /></button>
+                </div>
+
+                <select
+                  value={filterAHU}
+                  onChange={(e) => setFilterAHU(e.target.value)}
+                  className="mb-3 w-full rounded-xl border bg-slate-800/60 px-4 py-2"
+                >
+                  <option value="">Pilih AHU</option>
+                  {ahus.filter(a => a.is_active).map((a) => (
+                    <option key={a.id} value={a.id}>{a.unit_code}</option>
+                  ))}
+                </select>
+
+                <input
+                  type="date"
+                  value={filterDate}
+                  onChange={(e) => setFilterDate(e.target.value)}
+                  className="mb-3 w-full rounded-xl border bg-slate-800/60 px-4 py-2"
+                />
+
+                <p className="text-xs text-slate-400 mb-4">Schedule akan dibuat dengan durasi 1 minggu.</p>
+
+                <div className="flex gap-2">
                   <button
-                    onClick={resetForm}
+                    onClick={handleCreateFilterSchedule}
+                    disabled={isSaving}
+                    className="flex-1 rounded-xl bg-teal-500 py-2 font-medium text-slate-900 hover:bg-teal-400 disabled:opacity-50"
+                  >
+                    {isSaving ? "Menyimpan..." : "Simpan"}
+                  </button>
+                  <button
+                    onClick={() => setShowFilterModal(false)}
+                    disabled={isSaving}
                     className="flex-1 rounded-xl border border-white/10 bg-white/5 py-2"
                   >
                     Batal
@@ -423,76 +430,6 @@ const [filterDate, setFilterDate] = useState("")
             </motion.div>
           )}
         </AnimatePresence>
-
-        <AnimatePresence>
-        {showFilterModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-md rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl"
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <p className="font-medium">
-                  Buat Schedule Ganti Filter
-                </p>
-
-                <button onClick={() => setShowFilterModal(false)}>
-                  <X />
-                </button>
-              </div>
-
-              {/* AHU */}
-              <select
-                value={filterAHU}
-                onChange={(e) => setFilterAHU(e.target.value)}
-                className="mb-3 w-full rounded-xl border bg-slate-800/60 px-4 py-2"
-              >
-                <option value="">Pilih AHU</option>
-                {ahus.filter(a=>a.is_active).map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.unit_code}
-                  </option>
-                ))}
-              </select>
-
-              {/* DATE */}
-              <input
-                type="date"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-                className="mb-3 w-full rounded-xl border bg-slate-800/60 px-4 py-2"
-              />
-
-              <p className="text-xs text-slate-400 mb-4">
-                Schedule akan dibuat dengan durasi 1 minggu.
-              </p>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={handleCreateFilterSchedule}
-                  className="flex-1 rounded-xl bg-teal-500 py-2 font-medium text-slate-900 hover:bg-teal-400"
-                >
-                  Simpan
-                </button>
-
-                <button
-                  onClick={() => setShowFilterModal(false)}
-                  className="flex-1 rounded-xl border border-white/10 bg-white/5 py-2"
-                >
-                  Batal
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       </motion.div>
     </div>
   );
