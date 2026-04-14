@@ -1,9 +1,15 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import SidebarInspector from "@/components/SidebarInspector";
 import RequireRole from "@/components/RequireRole";
 import MobileBottomNav from "@/components/MobileBottomNav";
+
+// Helper sederhana untuk mendeteksi apakah kita di client atau server
+const subscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 export default function InspectorLayout({
   children,
@@ -11,13 +17,27 @@ export default function InspectorLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname() || "";
+  
+  // Menggunakan useSyncExternalStore adalah cara modern untuk menghindari 
+  // error "set-state-in-effect" saat menangani masalah hydration.
+  const isClient = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
+  );
+
   const currentYear = new Date().getFullYear();
 
-  // Deteksi halaman form (full screen tanpa sidebar & padding)
+  // Deteksi halaman form
   const isFormPage =
     pathname.includes("/inspection/") &&
     !pathname.endsWith("/dashboard") &&
     !pathname.endsWith("/scan-nfc");
+
+  // Jika masih di server (Hydration phase), render shell minimalis
+  if (!isClient) {
+    return <div className="min-h-screen bg-[#F8F9FA]" />;
+  }
 
   return (
     <RequireRole roles={["inspector"]}>
@@ -53,15 +73,11 @@ export default function InspectorLayout({
               {children}
             </div>
 
-            {/* FOOTER MOBILE (clean aesthetic) */}
+            {/* FOOTER MOBILE */}
             {!isFormPage && (
               <footer className="w-full py-10 px-6 text-center mt-auto">
-                <div className="h-[1px] w-8 bg-gray-200 mx-auto mb-4" />
-
-                <p
-                  className="text-[10px] text-gray-400 leading-relaxed uppercase tracking-[0.15em]"
-                  suppressHydrationWarning
-                >
+                <div className="h-px w-8 bg-gray-200 mx-auto mb-4" />
+                <p className="text-[10px] text-gray-400 leading-relaxed uppercase tracking-[0.15em]">
                   Developed by <br />
                   <span className="font-bold text-gray-600 mt-1 inline-block">
                     Lutfi Julpian | Yayang Lufiana
@@ -78,7 +94,7 @@ export default function InspectorLayout({
           {/* FOOTER DESKTOP */}
           {!isFormPage && (
             <footer className="w-full py-6 px-4 text-center text-xs md:text-sm text-gray-500 border-t border-gray-100 mt-auto mb-20 lg:mb-0">
-              <p suppressHydrationWarning>
+              <p>
                 Developed by{" "}
                 <span className="font-medium text-gray-700">
                   Lutfi Julpian | Yayang Lufiana
@@ -89,7 +105,7 @@ export default function InspectorLayout({
           )}
         </main>
 
-        {/* BOTTOM NAV (mobile only) */}
+        {/* BOTTOM NAV */}
         {!isFormPage && (
           <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
             <MobileBottomNav />

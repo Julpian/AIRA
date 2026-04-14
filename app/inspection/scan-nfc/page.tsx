@@ -1,18 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  ScanLine, 
   CircleHelp, 
-  Cpu, 
-  Wifi, 
   ShieldCheck, 
-  X, 
   AlertCircle,
-  Smartphone,
-  ChevronRight
+  Smartphone
 } from "lucide-react";
 import { apiFetch } from "@/services/api";
 
@@ -25,7 +20,8 @@ export default function ScanNFCPage() {
   const [error, setError] = useState<string | null>(null);
   const [showManual, setShowManual] = useState(false);
 
-  async function submit(uidValue: string) {
+  // Menggunakan useCallback agar fungsi stabil dan aman masuk ke dependency useEffect
+  const submit = useCallback(async (uidValue: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -39,6 +35,7 @@ export default function ScanNFCPage() {
         body: JSON.stringify({ nfc_uid: uidValue }),
       });
 
+      // Redirect ke halaman form inspeksi
       router.push(`/inspection/${res.inspection_id}?token=${res.scan_token}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Tag tidak dikenal");
@@ -46,15 +43,19 @@ export default function ScanNFCPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [router]);
 
   useEffect(() => {
-    const nfcUID = params.get("nfc_uid");
-    if (nfcUID) submit(nfcUID);
-  }, [params]);
+    // Menangkap nfc_id dari link: /scan-nfc?nfc_id=...
+    const nfcUID = params.get("nfc_id") || params.get("nfc_uid");
+    
+    if (nfcUID) {
+      submit(nfcUID);
+    }
+  }, [params, submit]);
 
   return (
-    <div className="relative min-h-[100dvh] bg-[#F2F2F7] flex flex-col items-center justify-between py-12 px-6 overflow-hidden font-sans">
+    <div className="relative min-h-dvh bg-[#F2F2F7] flex flex-col items-center justify-between py-12 px-6 overflow-hidden font-sans text-left">
       
       {/* STATUS BAR EMULATION */}
       <div className="fixed top-0 w-full h-12 bg-[#F2F2F7]/80 backdrop-blur-md z-40 flex items-center justify-center px-6">
@@ -77,7 +78,6 @@ export default function ScanNFCPage() {
       {/* CENTER VISUALIZATION */}
       <div className="flex flex-col items-center">
         <div className="relative w-64 h-64 flex items-center justify-center">
-          {/* Wave Animation */}
           {[1, 2, 3].map((i) => (
             <motion.div
               key={i}
@@ -88,7 +88,6 @@ export default function ScanNFCPage() {
             />
           ))}
 
-          {/* Device Icon */}
           <motion.div 
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -103,11 +102,10 @@ export default function ScanNFCPage() {
               </div>
             </div>
             
-            {/* Scan Line Overlay */}
             <motion.div 
               animate={{ top: ["20%", "70%", "20%"] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute inset-x-8 h-[2px] bg-gradient-to-r from-transparent via-blue-400 to-transparent shadow-[0_0_10px_#60a5fa]"
+              className="absolute inset-x-8 h-0.5 bg-linear-to-r from-transparent via-blue-400 to-transparent shadow-[0_0_10px_#60a5fa]"
             />
           </motion.div>
         </div>
@@ -116,7 +114,7 @@ export default function ScanNFCPage() {
           <h1 className="text-2xl font-bold text-black tracking-tight">
             Siap Memindai
           </h1>
-          <p className="mt-2 text-[15px] text-[#8E8E93] max-w-[240px] leading-snug font-medium">
+          <p className="mt-2 text-[15px] text-[#8E8E93] max-w-60 leading-snug font-medium text-center">
             Dekatkan bagian atas iPhone Anda ke titik sensor unit AHU.
           </p>
         </div>
@@ -145,20 +143,20 @@ export default function ScanNFCPage() {
         <span className="text-[9px] font-black uppercase tracking-[0.4em] text-black">AIRA SECURE</span>
       </div>
 
-      {/* iOS STYLE POPUP (CENTER MODAL) */}
+      {/* MODAL POPUP */}
       <AnimatePresence>
         {(error || showManual) && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-8"
+            className="fixed inset-0 z-100 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-8"
           >
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-[300px] bg-white/90 backdrop-blur-xl rounded-[22px] overflow-hidden shadow-2xl"
+              className="w-full max-w-75 bg-white/90 backdrop-blur-xl rounded-[22px] overflow-hidden shadow-2xl"
             >
               <div className="p-6 text-center">
                 {error ? (
@@ -166,13 +164,13 @@ export default function ScanNFCPage() {
                     <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
                       <AlertCircle size={24} className="text-red-500" />
                     </div>
-                    <h2 className="text-lg font-bold text-black">Gagal Membaca</h2>
-                    <p className="text-[13px] text-gray-600 mt-2">{error}</p>
+                    <h2 className="text-lg font-bold text-black text-center">Gagal Membaca</h2>
+                    <p className="text-[13px] text-gray-600 mt-2 text-center">{error}</p>
                   </>
                 ) : (
                   <>
-                    <h2 className="text-lg font-bold text-black">Input Manual</h2>
-                    <p className="text-[13px] text-gray-600 mt-1 mb-4">Masukkan ID Unit jika NFC tidak terbaca.</p>
+                    <h2 className="text-lg font-bold text-black text-center">Input Manual</h2>
+                    <p className="text-[13px] text-gray-600 mt-1 mb-4 text-center">Masukkan ID Unit jika NFC tidak terbaca.</p>
                     <input
                       value={uid}
                       onChange={(e) => setUid(e.target.value)}
